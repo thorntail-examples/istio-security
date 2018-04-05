@@ -1,0 +1,106 @@
+###########################
+# Name Service
+###########################
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sa-name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wfswarm-istio-mutual-tls-name
+  labels:
+    app: wfswarm-istio-mutual-tls-name
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: wfswarm-istio-mutual-tls-name
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wfswarm-istio-mutual-tls-name
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wfswarm-istio-mutual-tls-name
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: sa-name
+      containers:
+      - name: wfswarm-istio-mutual-tls-name
+        image: wfswarm-istio-mutual-tls-name:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+---
+###########################
+# Greeting Service
+###########################
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sa-greeting
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wfswarm-istio-mutual-tls-greeting
+  labels:
+    app: wfswarm-istio-mutual-tls-greeting
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: wfswarm-istio-mutual-tls-greeting
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wfswarm-istio-mutual-tls-greeting
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wfswarm-istio-mutual-tls-greeting
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: sa-greeting
+      containers:
+      - name: wfswarm-istio-mutual-tls-greeting
+        image: wfswarm-istio-mutual-tls-greeting:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+---
+###########################
+# Istio ingress
+###########################
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gateway
+  annotations:
+    kubernetes.io/ingress.class: "istio"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: wfswarm-istio-mutual-tls-greeting
+          servicePort: 8080
+      - path: /api/greeting
+        backend:
+          serviceName: wfswarm-istio-mutual-tls-greeting
+          servicePort: 8080
+---
