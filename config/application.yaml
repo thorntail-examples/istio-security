@@ -34,11 +34,21 @@ spec:
     spec:
       serviceAccountName: sa-name
       containers:
-      - name: wfswarm-istio-mutual-tls-name
+      - name: wildfly-swarm
         image: wfswarm-istio-mutual-tls-name:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - wildfly-swarm
+      from:
+        kind: ImageStreamTag
+        name: wfswarm-istio-mutual-tls-name:latest
+    type: ImageChange
 ---
 ###########################
 # Greeting Service
@@ -76,11 +86,21 @@ spec:
     spec:
       serviceAccountName: sa-greeting
       containers:
-      - name: wfswarm-istio-mutual-tls-greeting
+      - name: wildfly-swarm
         image: wfswarm-istio-mutual-tls-greeting:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - wildfly-swarm
+      from:
+        kind: ImageStreamTag
+        name: wfswarm-istio-mutual-tls-greeting:latest
+    type: ImageChange
 ---
 ###########################
 # Istio ingress

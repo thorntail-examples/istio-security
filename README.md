@@ -31,8 +31,16 @@ oc label namespace myproject istio-injection=enabled
 mvn clean package -pl wfswarm-istio-mutual-tls-name fabric8:build -Popenshift
 mvn clean package -pl wfswarm-istio-mutual-tls-greeting fabric8:build -Popenshift
 mvn clean package -pl wfswarm-greeting fabric8:deploy -Popenshift
-oc create -f /config/application.yaml
+oc create -f ./config/application.yaml
 ```
 
 # Use the Application
 
+Get ingress route (further referred as ${INGRESS_ROUTE}):
+
+```
+oc login -u system:admin
+oc get route -n istio-system
+```
+
+Copy and paste the HOST/PORT value that starts with `istio-ingress-istio-system` into your browser.
