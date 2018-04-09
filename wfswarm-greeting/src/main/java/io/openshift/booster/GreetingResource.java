@@ -22,6 +22,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 
 /**
  * @author Ken Finnigan
@@ -32,11 +33,19 @@ public class GreetingResource {
     @GET
     @Path("/greeting")
     @Produces("application/json")
-    public Greeting greeting() {
-        Client client = ClientBuilder.newClient();
-        WebTarget webTarget = client.target("http://wfswarm-istio-mutual-tls-name");
-        String name = webTarget.path("name").request().get().readEntity(String.class);
-        return new Greeting(String.format("Hello %s", name));
+    public Response greeting() {
+        try {
+            Client client = ClientBuilder.newClient();
+            WebTarget webTarget = client.target("http://wfswarm-istio-mutual-tls-name:8080");
+            String name = webTarget.path("/api/name").request().get().readEntity(String.class);
+            return Response.ok()
+                    .entity(new Greeting(String.format("Hello %s", name)))
+                    .build();
+        } catch (Exception e) {
+            return Response.serverError()
+                    .entity("Failed to communicate with `wfswarm-istio-mutual-tls-name` due to: " + e.getMessage())
+                    .build();
+        }
     }
 
     static class Greeting {

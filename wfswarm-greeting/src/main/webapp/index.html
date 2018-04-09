@@ -68,10 +68,10 @@
 
       $("#invoke").click(function(e) {
           $.getJSON("/api/greeting", function(res) {
-            $("#greeting-result").prepend(JSON.stringify(res) + "\n");
+            $("#greeting-result").prepend(JSON.stringify(res.content) + "\n");
           })
           .fail(function(jqxhr, textStatus, error) {
-            $("#greeting-result").prepend("HTTP Response Code `" + jqxhr.status + "` with cause: " + error + "\n");
+            $("#greeting-result").prepend("HTTP Response Code `" + jqxhr.status + "` with cause: " + jqxhr.responseText + "\n");
           });
           e.preventDefault();
       });

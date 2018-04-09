@@ -19,8 +19,8 @@ spec:
   selector:
     app: wfswarm-istio-mutual-tls-name
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
 metadata:
   name: wfswarm-istio-mutual-tls-name
 spec:
@@ -35,7 +35,6 @@ spec:
       serviceAccountName: sa-name
       containers:
       - name: wildfly-swarm
-        image: wfswarm-istio-mutual-tls-name:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
@@ -71,8 +70,8 @@ spec:
   selector:
     app: wfswarm-istio-mutual-tls-greeting
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
 metadata:
   name: wfswarm-istio-mutual-tls-greeting
 spec:
@@ -87,7 +86,6 @@ spec:
       serviceAccountName: sa-greeting
       containers:
       - name: wildfly-swarm
-        image: wfswarm-istio-mutual-tls-greeting:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
