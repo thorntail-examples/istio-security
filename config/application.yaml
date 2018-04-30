@@ -9,26 +9,26 @@ metadata:
 apiVersion: v1
 kind: Service
 metadata:
-  name: wfswarm-istio-mutual-tls-name
+  name: wfswarm-istio-security-name
   labels:
-    app: wfswarm-istio-mutual-tls-name
+    app: wfswarm-istio-security-name
 spec:
   ports:
   - port: 8080
     name: http
   selector:
-    app: wfswarm-istio-mutual-tls-name
+    app: wfswarm-istio-security-name
 ---
 apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
 metadata:
-  name: wfswarm-istio-mutual-tls-name
+  name: wfswarm-istio-security-name
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: wfswarm-istio-mutual-tls-name
+        app: wfswarm-istio-security-name
       annotations:
         sidecar.istio.io/inject: "true"
     spec:
@@ -46,7 +46,7 @@ spec:
       - wildfly-swarm
       from:
         kind: ImageStreamTag
-        name: wfswarm-istio-mutual-tls-name:latest
+        name: wfswarm-istio-security-name:latest
     type: ImageChange
 ---
 ###########################
@@ -60,26 +60,26 @@ metadata:
 apiVersion: v1
 kind: Service
 metadata:
-  name: wfswarm-istio-mutual-tls-greeting
+  name: wfswarm-istio-security-greeting
   labels:
-    app: wfswarm-istio-mutual-tls-greeting
+    app: wfswarm-istio-security-greeting
 spec:
   ports:
   - port: 8080
     name: http
   selector:
-    app: wfswarm-istio-mutual-tls-greeting
+    app: wfswarm-istio-security-greeting
 ---
 apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
 metadata:
-  name: wfswarm-istio-mutual-tls-greeting
+  name: wfswarm-istio-security-greeting
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: wfswarm-istio-mutual-tls-greeting
+        app: wfswarm-istio-security-greeting
       annotations:
         sidecar.istio.io/inject: "true"
     spec:
@@ -97,7 +97,7 @@ spec:
       - wildfly-swarm
       from:
         kind: ImageStreamTag
-        name: wfswarm-istio-mutual-tls-greeting:latest
+        name: wfswarm-istio-security-greeting:latest
     type: ImageChange
 ---
 ###########################
@@ -115,10 +115,10 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: wfswarm-istio-mutual-tls-greeting
+          serviceName: wfswarm-istio-security-greeting
           servicePort: 8080
       - path: /api/greeting
         backend:
-          serviceName: wfswarm-istio-mutual-tls-greeting
+          serviceName: wfswarm-istio-security-greeting
           servicePort: 8080
 ---
