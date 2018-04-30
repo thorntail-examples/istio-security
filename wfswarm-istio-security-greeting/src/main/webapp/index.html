@@ -19,7 +19,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Istio Mutual TLS Mission - WildFly Swarm</title>
+  <title>Istio Security Mission - WildFly Swarm</title>
   <link rel="stylesheet"
         href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
         integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
@@ -31,13 +31,15 @@
 <div class="container">
 
   <div>
-    <h1>Istio Mutual TLS Mission - WildFly Swarm</h1>
+    <h1>Istio Security Mission - WildFly Swarm</h1>
     <p class="lead">
-      TODO
+      This mission showcases Istio security concepts whereby access to services is controlled by the platform
+      rather than independently by constituent applications.
     </p>
     <p>
-      On this page you can invoke the <strong>greeting service</strong>. This service tries to use a <strong>name
-      service</strong> that's inside the Istio Service Mesh, and as a result Mutual TLS prevents it.
+      Here we’ll outline how to apply a security policy that allows clients to obtain a greeting from a Greeting
+      Service while forbidding direct access to the underlying name service. Further, we’ll explore how to change
+      this policy on the fly to permit invocations directly upon the internal service.
     </p>
 
     <div class="row">

@@ -36,14 +36,14 @@ public class GreetingResource {
     public Response greeting() {
         try {
             Client client = ClientBuilder.newClient();
-            WebTarget webTarget = client.target("http://wfswarm-istio-mutual-tls-name:8080");
+            WebTarget webTarget = client.target("http://wfswarm-istio-security-name:8080");
             String name = webTarget.path("/api/name").request().get().readEntity(String.class);
             return Response.ok()
                     .entity(new Greeting(String.format("Hello %s", name)))
                     .build();
         } catch (Exception e) {
             return Response.serverError()
-                    .entity("Failed to communicate with `wfswarm-istio-mutual-tls-name` due to: " + e.getMessage())
+                    .entity("Failed to communicate with `wfswarm-istio-security-name` due to: " + e.getMessage())
                     .build();
         }
     }

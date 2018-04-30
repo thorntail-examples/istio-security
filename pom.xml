@@ -10,22 +10,21 @@
   </parent>
 
   <groupId>io.openshift.booster</groupId>
-  <artifactId>wfswarm-istio-mutual-tls-parent</artifactId>
+  <artifactId>wfswarm-istio-security-parent</artifactId>
   <version>1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>WildFly Swarm - Istio - Mutual TLS Booster</name>
+  <name>WildFly Swarm - Istio - Security Booster</name>
 
   <properties>
-    <version.wildfly.swarm>2018.3.3</version.wildfly.swarm>
+    <version.wildfly.swarm>2018.4.1</version.wildfly.swarm>
     <version.resteasy>3.0.24.Final</version.resteasy>
     <version.restassured>3.0.7</version.restassured>
   </properties>
 
   <modules>
-    <module>wfswarm-istio-mutual-tls-name</module>
-    <module>wfswarm-istio-mutual-tls-greeting</module>
-    <module>wfswarm-greeting</module>
+    <module>wfswarm-istio-security-name</module>
+    <module>wfswarm-istio-security-greeting</module>
   </modules>
 
   <dependencyManagement>
