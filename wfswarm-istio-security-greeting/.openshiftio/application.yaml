@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: wfswarm-istio-security-greeting-service
+  name: wfswarm-istio-security-greeting
   annotations:
-    iconClass: icon-jboss
-    tags: wildfly-swarm, security, java, microservice
-    template.openshift.io/provider-display-name: "Red Hat, Inc."
-    description: The Istio Security Mission shows Mutual TLS and ACL on Istio
+    iconClass: icon-spring
+    tags: wildfly-swarm, mutual tls, java, microservice
+    openshift.io/display-name: WildFly Swarm Istio Security - Greeting Service
+    openshift.io/provider-display-name: "Red Hat, Inc."
 parameters:
 - name: SOURCE_REPOSITORY_URL
   description: The source URL for the application
@@ -22,37 +22,70 @@ parameters:
   displayName: Source Directory
   value: .
   required: true
+- name: ARTIFACT_COPY_ARGS
+  description: Syntax to be used to copy uberjar files to the target directory
+  displayName: Copy Args
+  value: '*-swarm.jar'
+  required: true
 - name: GITHUB_WEBHOOK_SECRET
   description: A secret string used to configure the GitHub webhook.
   displayName: GitHub Webhook Secret
   required: true
   from: '[a-zA-Z0-9]{40}'
   generate: expression
+- name: MAVEN_MIRROR_URL
+  description: Maven Nexus Repository to be used during build phase
+  displayName:
+  required: false
 objects:
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    labels:
+      app: wfswarm-istio-security-greeting
+      provider: wfswarm
+      version: "BOOSTER_VERSION"
+      group: io.openshift.booster
+    name: sa-greeting
 - apiVersion: v1
   kind: ImageStream
   metadata:
+    labels:
+      app: wfswarm-istio-security-greeting
+      provider: wfswarm
+      version: "BOOSTER_VERSION"
+      group: io.openshift.booster
     name: wfswarm-istio-security-greeting
   spec: {}
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    name: runtime-wfswarm-istio-security-greeting
+    labels:
+      app: wfswarm-istio-security-greeting
+      provider: wfswarm
+      version: "BOOSTER_VERSION"
+      group: io.openshift.booster
+    name: wfswarm-istio-security-greeting-runtime
   spec:
     tags:
-    - name: latest
+    - name: "1.2"
       from:
         kind: DockerImage
-        name: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift
+        name: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:1.2
 - apiVersion: v1
   kind: BuildConfig
   metadata:
+    labels:
+      app: wfswarm-istio-security-greeting
+      provider: wfswarm
+      version: "BOOSTER_VERSION"
+      group: io.openshift.booster
     name: wfswarm-istio-security-greeting
   spec:
     output:
       to:
         kind: ImageStreamTag
-        name: wfswarm-istio-security-greeting:latest
+        name: wfswarm-istio-security-greeting:BOOSTER_VERSION
     postCommit: {}
     resources: {}
     source:
@@ -64,15 +97,17 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: runtime-wfswarm-istio-security-greeting:latest
+          name: wfswarm-istio-security-greeting-runtime:1.2
         incremental: true
         env:
         - name: MAVEN_ARGS_APPEND
           value: "-pl ${SOURCE_REPOSITORY_DIR}"
         - name: ARTIFACT_DIR
           value: "${SOURCE_REPOSITORY_DIR}/target"
+        - name: MAVEN_MIRROR_URL
+          value: "${MAVEN_MIRROR_URL}"
         - name: ARTIFACT_COPY_ARGS
-          value: "*-swarm.jar"
+          value: "${ARTIFACT_COPY_ARGS}"
       type: Source
     triggers:
     - github:
@@ -84,18 +119,13 @@ objects:
   status:
     lastVersion: 0
 - apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    labels:
-      app: wfswarm-istio-security-greeting
-    name: sa-greeting
-- apiVersion: v1
   kind: Service
   metadata:
     labels:
       app: wfswarm-istio-security-greeting
+      provider: wfswarm
+      version: "BOOSTER_VERSION"
       group: io.openshift.booster
-      expose: "true"
     name: wfswarm-istio-security-greeting
   spec:
     ports:
@@ -105,12 +135,15 @@ objects:
       targetPort: 8080
     selector:
       app: wfswarm-istio-security-greeting
+      provider: wfswarm
       group: io.openshift.booster
-- apiVersion: apps.openshift.io/v1
+- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     labels:
       app: wfswarm-istio-security-greeting
+      provider: wfswarm
+      version: "BOOSTER_VERSION"
       group: io.openshift.booster
     name: wfswarm-istio-security-greeting
   spec:
@@ -118,6 +151,7 @@ objects:
     revisionHistoryLimit: 2
     selector:
       app: wfswarm-istio-security-greeting
+      provider: wfswarm
       group: io.openshift.booster
     strategy:
       rollingParams:
@@ -129,23 +163,18 @@ objects:
           sidecar.istio.io/inject: "true"
         labels:
           app: wfswarm-istio-security-greeting
+          provider: wfswarm
+          version: "BOOSTER_VERSION"
           group: io.openshift.booster
       spec:
-        serviceAccountName: sa-greeting
         containers:
         - env:
           - name: KUBERNETES_NAMESPACE
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          image: wfswarm-istio-security-greeting:latest
+          image: wfswarm-istio-security-greeting:BOOSTER_VERSION
           imagePullPolicy: IfNotPresent
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-              scheme: HTTP
-            initialDelaySeconds: 180
           name: wildfly-swarm
           ports:
           - containerPort: 8080
@@ -157,14 +186,9 @@ objects:
           - containerPort: 8778
             name: jolokia
             protocol: TCP
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-              scheme: HTTP
-            initialDelaySeconds: 10
           securityContext:
             privileged: false
+        serviceAccountName: sa-greeting
     triggers:
     - type: ConfigChange
     - imageChangeParams:
@@ -173,7 +197,7 @@ objects:
         - wildfly-swarm
         from:
           kind: ImageStreamTag
-          name: wfswarm-istio-security-greeting:latest
+          name: wfswarm-istio-security-greeting:BOOSTER_VERSION
       type: ImageChange
 - apiVersion: route.openshift.io/v1
   kind: Route
@@ -181,6 +205,8 @@ objects:
     labels:
       expose: "true"
       app: wfswarm-istio-security-greeting
+      provider: wfswarm
+      version: "BOOSTER_VERSION"
       group: io.openshift.booster
     name: wfswarm-istio-security-greeting
   spec:
@@ -192,7 +218,12 @@ objects:
 - apiVersion: extensions/v1beta1
   kind: Ingress
   metadata:
-    name: gateway
+    labels:
+      app: wfswarm-istio-security-greeting
+      provider: wfswarm
+      version: "BOOSTER_VERSION"
+      group: io.openshift.booster
+    name: wfswarm-istio-security-greeting
     annotations:
       kubernetes.io/ingress.class: istio
   spec:
