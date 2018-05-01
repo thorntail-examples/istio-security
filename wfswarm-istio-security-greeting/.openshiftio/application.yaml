@@ -109,7 +109,6 @@ objects:
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
-    annotations:
     labels:
       app: wfswarm-istio-security-greeting
       group: io.openshift.booster
