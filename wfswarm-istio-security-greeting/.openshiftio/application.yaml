@@ -95,6 +95,7 @@ objects:
     labels:
       app: wfswarm-istio-security-greeting
       group: io.openshift.booster
+      expose: "true"
     name: wfswarm-istio-security-greeting
   spec:
     ports:
@@ -175,12 +176,26 @@ objects:
           kind: ImageStreamTag
           name: wfswarm-istio-security-greeting:latest
       type: ImageChange
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    labels:
+      expose: "true"
+      app: wfswarm-istio-security-greeting
+      group: io.openshift.booster
+    name: wfswarm-istio-security-greeting
+  spec:
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: wfswarm-istio-security-greeting
 - apiVersion: extensions/v1beta1
   kind: Ingress
   metadata:
     name: gateway
     annotations:
-      kubernetes.io/ingress.class: "istio"
+      kubernetes.io/ingress.class: istio
   spec:
     rules:
     - http:

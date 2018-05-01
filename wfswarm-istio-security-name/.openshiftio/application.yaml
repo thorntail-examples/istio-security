@@ -95,6 +95,7 @@ objects:
     labels:
       app: wfswarm-istio-security-name
       group: io.openshift.booster
+      expose: "true"
     name: wfswarm-istio-security-name
   spec:
     ports:
@@ -175,3 +176,16 @@ objects:
           kind: ImageStreamTag
           name: wfswarm-istio-security-name:latest
       type: ImageChange
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    labels:
+      expose: "true"
+      app: wfswarm-istio-security-name
+    name: wfswarm-istio-security-name
+  spec:
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: wfswarm-istio-security-name
