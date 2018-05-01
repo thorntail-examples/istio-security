@@ -126,10 +126,10 @@ objects:
           image: wfswarm-istio-security-name:latest
           imagePullPolicy: IfNotPresent
           livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-              scheme: HTTP
+            exec:
+              command:
+              - curl
+              - http://localhost:8080/health
             initialDelaySeconds: 180
           name: wildfly-swarm
           ports:
@@ -137,10 +137,10 @@ objects:
             name: http
             protocol: TCP
           readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-              scheme: HTTP
+            exec:
+              command:
+              - curl
+              - http://localhost:8080/health
             initialDelaySeconds: 10
           securityContext:
             privileged: false
