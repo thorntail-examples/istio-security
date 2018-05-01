@@ -22,12 +22,21 @@ parameters:
   displayName: Source Directory
   value: .
   required: true
+- name: ARTIFACT_COPY_ARGS
+  description: Syntax to be used to copy uberjar files to the target directory
+  displayName: Copy Args
+  value: '*-swarm.jar'
+  required: true
 - name: GITHUB_WEBHOOK_SECRET
   description: A secret string used to configure the GitHub webhook.
   displayName: GitHub Webhook Secret
   required: true
   from: '[a-zA-Z0-9]{40}'
   generate: expression
+- name: MAVEN_MIRROR_URL
+  description: Maven Nexus Repository to be used during build phase
+  displayName:
+  required: false
 objects:
 - apiVersion: v1
   kind: ImageStream
@@ -71,8 +80,10 @@ objects:
           value: "-pl ${SOURCE_REPOSITORY_DIR}"
         - name: ARTIFACT_DIR
           value: "${SOURCE_REPOSITORY_DIR}/target"
+        - name: MAVEN_MIRROR_URL
+          value: "${MAVEN_MIRROR_URL}"
         - name: ARTIFACT_COPY_ARGS
-          value: "*-swarm.jar"
+          value: "${ARTIFACT_COPY_ARGS}"
       type: Source
     triggers:
     - github:
@@ -83,33 +94,9 @@ objects:
       type: ImageChange
   status:
     lastVersion: 0
-- apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    labels:
-      app: wfswarm-istio-security-name
-    name: sa-name
-- apiVersion: v1
-  kind: Service
-  metadata:
-    labels:
-      app: wfswarm-istio-security-name
-      group: io.openshift.booster
-      expose: "true"
-    name: wfswarm-istio-security-name
-  spec:
-    ports:
-    - name: http
-      port: 8080
-      protocol: TCP
-      targetPort: 8080
-    selector:
-      app: wfswarm-istio-security-name
-      group: io.openshift.booster
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
-    annotations:
     labels:
       app: wfswarm-istio-security-name
       group: io.openshift.booster
@@ -117,9 +104,6 @@ objects:
   spec:
     replicas: 1
     revisionHistoryLimit: 2
-    selector:
-      app: wfswarm-istio-security-name
-      group: io.openshift.booster
     strategy:
       rollingParams:
         timeoutSeconds: 3600
@@ -152,12 +136,6 @@ objects:
           - containerPort: 8080
             name: http
             protocol: TCP
-          - containerPort: 9779
-            name: prometheus
-            protocol: TCP
-          - containerPort: 8778
-            name: jolokia
-            protocol: TCP
           readinessProbe:
             httpGet:
               path: /health
@@ -176,16 +154,19 @@ objects:
           kind: ImageStreamTag
           name: wfswarm-istio-security-name:latest
       type: ImageChange
-- apiVersion: route.openshift.io/v1
-  kind: Route
+- apiVersion: v1
+  kind: ServiceAccount
   metadata:
-    labels:
-      expose: "true"
-      app: wfswarm-istio-security-name
+    name: sa-name
+- apiVersion: v1
+  kind: Service
+  metadata:
     name: wfswarm-istio-security-name
+    labels:
+      app: wfswarm-istio-security-name
   spec:
-    port:
-      targetPort: 8080
-    to:
-      kind: Service
-      name: wfswarm-istio-security-name
+    ports:
+    - port: 8080
+      name: http
+    selector:
+      app: wfswarm-istio-security-name
