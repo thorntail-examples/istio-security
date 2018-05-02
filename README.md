@@ -1,113 +1,108 @@
-# Install Istio command
+# Istio Security Mission for WildFly Swarm
 
-Ensure Docker is installed and running.
+## Purpose
 
-Download the binary for your operating system from https://github.com/openshift-istio/origin/releases/tag/istio-3.9-0.7.1-alpha1
+Showcase mTLS and ACL of Istio with WildFly Swarm applications
 
-# Start OpenShift/Istio
+## Prerequisites
 
+* Docker installed and running
+* OpenShift and Istio environment up and running with mTLS enabled (See https://github.com/openshift-istio/istio-docs/blob/master/user-journey.adoc for details)
+
+## Launcher Flow Setup
+
+If the Booster is installed through the Launcher and the Continuous Delivery flow, no additional steps are necessary.
+
+Skip to the _Use Cases_ section.
+
+## Local Source to Image Build (S2I)
+
+### Prepare the Namespace
+
+Create a new namespace/project:
 ```
-istiooc cluster up --istio=true --istio-auth=true
-```
-
-# Prepare the Namespace
-
-**This mission assumes that `myproject` namespace is used.**
-
-Create the namespace if one does not exist:
-```
-oc new-project myproject
-```
-
-Label the namespace for Istio Injection:
-```
-oc login -u system:admin
-oc label namespace myproject istio-injection=enabled
-```
-
-# Deploy the Application
-
-```
-oc login -u developer
-mvn clean package -pl wfswarm-istio-mutual-tls-name fabric8:build -Popenshift
-mvn clean package -pl wfswarm-istio-mutual-tls-greeting fabric8:build -Popenshift
-mvn clean package -pl wfswarm-greeting fabric8:deploy -Popenshift
-oc create -f ./config/application.yaml
+oc new-project <whatever valid project name you want>
 ```
 
-# Use the Application
+### Build and Deploy the Application
 
-## Mutual TLS
+#### With Source to Image build (S2I)
 
-The next two use cases showcase services inside and outside Istio trying to access a service inside Istio,
-showing how Mutual TLS denies or allows that access.
+Run the following commands to apply and execute the OpenShift templates that will configure and deploy the applications:
+```bash
+find . | grep openshiftio | grep application | xargs -n 1 oc apply -f
 
-### Service outside Istio
-
-Click on the OpenShift Route from the OpenShift Console for the "wfswarm-greeting" deployment.
-
-Click the "Invoke" button to trigger a request.
-We will get a response containing the message "Unable to invoke request".
-
-For further information we can go to the logs of "wfswarm-greeting" in the OpenShift Console,
-where we see messages containing "connection reset" indicating that the connection was denied because Mutual TLS was not present.
-
-### Service inside Istio
-
-Get ingress route (further referred as ${INGRESS_ROUTE}):
-
-```
-oc login -u system:admin
-oc get route -n istio-system
+oc new-app --template=wfswarm-istio-security-greeting-service -p SOURCE_REPOSITORY_URL=https://github.com/wildfly-swarm-openshiftio-boosters/wfswarm-istio-security -p SOURCE_REPOSITORY_REF=master -p SOURCE_REPOSITORY_DIR=wfswarm-istio-security-greeting
+oc new-app --template=wfswarm-istio-security-name-service -p SOURCE_REPOSITORY_URL=https://github.com/wildfly-swarm-openshiftio-boosters/wfswarm-istio-security -p SOURCE_REPOSITORY_REF=master -p SOURCE_REPOSITORY_DIR=wfswarm-istio-security-name
 ```
 
-Copy and paste the HOST/PORT value that starts with `istio-ingress-istio-system` into your browser.
+## Use Cases
 
-You will be presented with the UI. Clicking on "Invoke" will return "Hello World".
+Any steps issuing `oc` commands require the user to have run `oc login` first and switched to the appropriate project with `oc project <project name>`.
 
-This showcases that services within Istio, with Mutual TLS enabled,
-are automatically able to execute calls on each other.
+### Scenario 1 : Mutual TLS
 
-## ACL
+This scenario demonstrates mutual transport level security between services within a mesh.
 
-The next two use cases showcase denying service to service communication with an ACL defined by labels and service accounts.
+1. Retrieve the URL for the Istio Ingress route, with the below command, and open it in a web browser.
+    ```
+    echo http://$(oc get route istio-ingress -o jsonpath='{.spec.host}{"\n"}' -n istio-system)/
+    ```
+2. The user will be presented with the web page of the Booster
+3. Click the "Invoke" button. You should see "Hello World" message in a result box.
+4. Modify the Greeting Service Deployment Config to disable Istio sidecar injection by setting `sidecar.istio.io/inject` to `false`.
+This can be done through the OpenShift Console UI or on the command line with:
+    ```
+    oc edit deploymentconfigs/wfswarm-istio-security-greeting
+    ```
+5. In the OpenShift Console UI the _wfswarm-istio-security-greeting_ deployment will restarted with the changes
+6. Refreshing the browser page opened at the Istio Ingress URL will now show the error:
+    ```
+    upstream connect error or disconnect/reset before headers
+    ```
+    This is because the Greeting Service is no longer part of the Istio Mesh,
+    and can not be loaded by the Ingress service,
+    even though the Ingress rule is still present.
+7. From the OpenShift Console UI, click on the URL route for the Greeting service and it will load the web page for the Booster.
+8. Clicking "Invoke" will result in an error appearing in the result box that looks like
+    ```
+    HTTP Response Code `500` with cause: Failed to communicate with `wfswarm-istio-security-name` due to: RESTEASY004655: Unable to invoke request
+    ```
+    This is because the Greeting service is outside Istio, and the Name service is inside.
+    mTLS prevents services outside and inside the mesh from communicating with each other.
+9. Now re-enable Istio sidecar injection by setting `sidecar.istio.io/inject` to `true` and verify that once the deployment has restarted,
+the Istio Ingress URL is able to load the webpage again.
+You will also notice that the external route URL for the Greeting service returns a blank page as the route URL is outside Istio,
+and the service is now back inside, and is therefore inaccesible to the route.
 
-### via Labels
+### Scenario 2 : Access Control
 
-Setup the Istio Mixer rules to deny the greeting service from calling the name service by label names.
+This scenario demonstrates access control between services when mTLS is enabled.
 
-```
-oc login -u system:admin
-oc create -f ./rules/mixer-rule-deny-label.yaml -n myproject
-```
-
-Open ${INGRESS_ROUTE} in a browser again, and click "Invoke".
-The response displayed will be: "Hello PERMISSION_DENIED:denygreetingslabelhandler.denier.myproject:Not allowed".
-
-We can then delete the rules:
-
-```
-oc delete -f ./rules/mixer-rule-deny-label.yaml -n myproject
-```
-
-If we click "Invoke" again, we will receive "Hello World" as the response.
-
-### via Service Accounts
-
-Setup the Istio Mixer rules to deny the greeting service from calling the name service by service accounts.
-
-```
-oc login -u system:admin
-oc create -f ./rules/mixer-rule-deny-serviceaccount.yaml -n myproject
-```
-
-Open ${INGRESS_ROUTE} in a browser again, and click "Invoke".
-The response displayed will be: "Hello PERMISSION_DENIED:denygreetingssvcaccthandler.denier.myproject:Not allowed".
-
-We can then delete the rules:
-
-```
-oc delete -f ./rules/mixer-rule-deny-serviceaccount.yaml -n myproject
-```
-
-If we click "Invoke" again, we will receive "Hello World" as the response.
+1. Retrieve the URL for the Istio Ingress route, with the below command, and open it in a web browser.
+    ```
+    echo http://$(oc get route istio-ingress -o jsonpath='{.spec.host}{"\n"}' -n istio-system)/
+    ```
+2. The user will be presented with the web page of the Booster
+3. Click the "Invoke" button. You should see "Hello World" message in a result box.
+4. Configure the Istio Mixer to block the greeting service from accessing the name service by label:
+    ```
+    oc apply -f rules/block-greeting-service.yaml
+    ```
+5. In the Booster webpage clicking "Invoke" will now return an error that contains a message such as:
+    ```
+    PERMISSION_DENIED:denynameservicelabelhandler.denier.my-security:Not allowed
+    ```
+6. We can remove the rule and see "Invoke" work as before by running:
+    ```
+    oc delete -f rules/block-greeting-service.yaml
+    ```
+7. Now configure the Istio Mixer to only allow requests to the name service when the caller has the `sa-greeting` service account:
+    ```
+    oc apply -f <(sed -e "s/TARGET_NAMESPACE/$(oc project -q)/g" rules/require-service-account-and-label.yaml)
+    ```
+8. Clicking "Invoke" will now show "Hello World", as the caller has the needed service account.
+9. Remove the rule by running:
+    ```
+    oc delete -f <(sed -e "s/TARGET_NAMESPACE/$(oc project -q)/g" rules/require-service-account-and-label.yaml)
+    ```

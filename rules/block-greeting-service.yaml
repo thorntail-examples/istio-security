@@ -1,0 +1,24 @@
+apiVersion: "config.istio.io/v1alpha2"
+kind: denier
+metadata:
+  name: denynameservicelabelhandler
+spec:
+  status:
+    code: 7
+    message: Not allowed
+---
+apiVersion: "config.istio.io/v1alpha2"
+kind: checknothing
+metadata:
+  name: denynameservicelabelrequest
+spec:
+---
+apiVersion: "config.istio.io/v1alpha2"
+kind: rule
+metadata:
+  name: denynamelabel
+spec:
+  match: destination.labels["app"] == "wfswarm-istio-security-name" && source.labels["app"]=="wfswarm-istio-security-greeting"
+  actions:
+  - handler: denynameservicelabelhandler.denier
+    instances: [ denynameservicelabelrequest.checknothing ]
