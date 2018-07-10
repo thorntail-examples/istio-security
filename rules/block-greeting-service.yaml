@@ -18,7 +18,7 @@ kind: rule
 metadata:
   name: denynamelabel
 spec:
-  match: destination.labels["app"] == "wfswarm-istio-security-name" && source.labels["app"]=="wfswarm-istio-security-greeting"
+  match: destination.labels["app"] == "thorntail-istio-security-name" && source.labels["app"]=="thorntail-istio-security-greeting"
   actions:
   - handler: denynameservicelabelhandler.denier
     instances: [ denynameservicelabelrequest.checknothing ]

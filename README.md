@@ -1,8 +1,8 @@
-# Istio Security Mission for WildFly Swarm
+# Istio Security Mission for Thorntail
 
 ## Purpose
 
-Showcase mTLS and ACL of Istio with WildFly Swarm applications
+Showcase mTLS and ACL of Istio with Thorntail applications
 
 ## Prerequisites
 
@@ -32,8 +32,8 @@ Run the following commands to apply and execute the OpenShift templates that wil
 ```bash
 find . | grep openshiftio | grep application | xargs -n 1 oc apply -f
 
-oc new-app --template=wfswarm-istio-security-greeting-service -p SOURCE_REPOSITORY_URL=https://github.com/wildfly-swarm-openshiftio-boosters/wfswarm-istio-security -p SOURCE_REPOSITORY_REF=master -p SOURCE_REPOSITORY_DIR=wfswarm-istio-security-greeting
-oc new-app --template=wfswarm-istio-security-name-service -p SOURCE_REPOSITORY_URL=https://github.com/wildfly-swarm-openshiftio-boosters/wfswarm-istio-security -p SOURCE_REPOSITORY_REF=master -p SOURCE_REPOSITORY_DIR=wfswarm-istio-security-name
+oc new-app --template=thorntail-istio-security-greeting-service -p SOURCE_REPOSITORY_URL=https://github.com/wildfly-swarm-openshiftio-boosters/wfswarm-istio-security -p SOURCE_REPOSITORY_REF=master -p SOURCE_REPOSITORY_DIR=greeting
+oc new-app --template=thorntail-istio-security-name-service -p SOURCE_REPOSITORY_URL=https://github.com/wildfly-swarm-openshiftio-boosters/wfswarm-istio-security -p SOURCE_REPOSITORY_REF=master -p SOURCE_REPOSITORY_DIR=name
 ```
 
 ## Use Cases
@@ -44,19 +44,19 @@ Any steps issuing `oc` commands require the user to have run `oc login` first an
 
 This scenario demonstrates mutual transport level security between services within a mesh.
 
-1. Retrieve the URL for the Istio Ingress route, with the below command, and open it in a web browser.
+1. Retrieve the URL for the Istio Ingress Gateway route, with the below command, and open it in a web browser.
     ```
-    echo http://$(oc get route istio-ingress -o jsonpath='{.spec.host}{"\n"}' -n istio-system)/
+    echo http://$(oc get route istio-ingressgateway -o jsonpath='{.spec.host}{"\n"}' -n istio-system)/thorntail-istio-security/
     ```
 2. The user will be presented with the web page of the Booster
 3. Click the "Invoke" button. You should see "Hello World" message in a result box.
 4. Modify the Greeting Service Deployment Config to disable Istio sidecar injection by setting `sidecar.istio.io/inject` to `false`.
 This can be done through the OpenShift Console UI or on the command line with:
     ```
-    oc edit deploymentconfigs/wfswarm-istio-security-greeting
+    oc edit deploymentconfigs/thorntail-istio-security-greeting
     ```
-5. In the OpenShift Console UI the _wfswarm-istio-security-greeting_ deployment will restarted with the changes
-6. Refreshing the browser page opened at the Istio Ingress URL will now show the error:
+5. In the OpenShift Console UI the _thorntail-istio-security-greeting_ deployment will restarted with the changes
+6. Refreshing the browser page opened at the Istio Ingress Gateway URL will now show the error:
     ```
     upstream connect error or disconnect/reset before headers
     ```
@@ -66,12 +66,12 @@ This can be done through the OpenShift Console UI or on the command line with:
 7. From the OpenShift Console UI, click on the URL route for the Greeting service and it will load the web page for the Booster.
 8. Clicking "Invoke" will result in an error appearing in the result box that looks like
     ```
-    HTTP Response Code `500` with cause: Failed to communicate with `wfswarm-istio-security-name` due to: RESTEASY004655: Unable to invoke request
+    HTTP Response Code `500` with cause: Failed to communicate with `thorntail-istio-security-name` due to: RESTEASY004655: Unable to invoke request
     ```
     This is because the Greeting service is outside Istio, and the Name service is inside.
     mTLS prevents services outside and inside the mesh from communicating with each other.
 9. Now re-enable Istio sidecar injection by setting `sidecar.istio.io/inject` to `true` and verify that once the deployment has restarted,
-the Istio Ingress URL is able to load the webpage again.
+the Istio Ingress Gateway URL is able to load the webpage again.
 You will also notice that the external route URL for the Greeting service returns a blank page as the route URL is outside Istio,
 and the service is now back inside, and is therefore inaccesible to the route.
 
@@ -79,9 +79,9 @@ and the service is now back inside, and is therefore inaccesible to the route.
 
 This scenario demonstrates access control between services when mTLS is enabled.
 
-1. Retrieve the URL for the Istio Ingress route, with the below command, and open it in a web browser.
+1. Retrieve the URL for the Istio Ingress Gateway route, with the below command, and open it in a web browser.
     ```
-    echo http://$(oc get route istio-ingress -o jsonpath='{.spec.host}{"\n"}' -n istio-system)/
+    echo http://$(oc get route istio-ingressgateway -o jsonpath='{.spec.host}{"\n"}' -n istio-system)/thorntail-istio-security/
     ```
 2. The user will be presented with the web page of the Booster
 3. Click the "Invoke" button. You should see "Hello World" message in a result box.

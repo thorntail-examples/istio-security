@@ -5,35 +5,41 @@
 
   <parent>
     <groupId>io.openshift.booster</groupId>
-    <artifactId>wfswarm-istio-security-parent</artifactId>
+    <artifactId>thorntail-istio-security-parent</artifactId>
     <version>2-SNAPSHOT</version>
   </parent>
 
-  <artifactId>wfswarm-istio-security-name</artifactId>
+  <artifactId>thorntail-istio-security-greeting</artifactId>
   <packaging>war</packaging>
 
-  <name>WildFly Swarm - Istio - Security Booster - Name Service</name>
+  <name>Thorntail - Istio - Security Booster - Greeting Service with TLS</name>
 
   <dependencies>
     <dependency>
-      <groupId>org.wildfly.swarm</groupId>
+      <groupId>io.thorntail</groupId>
       <artifactId>jaxrs</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.wildfly.swarm</groupId>
+      <groupId>io.thorntail</groupId>
+      <artifactId>cdi</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.thorntail</groupId>
       <artifactId>microprofile-health</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.wildfly.swarm</groupId>
-      <artifactId>arquillian</artifactId>
-      <scope>test</scope>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-client</artifactId>
+      <version>${version.resteasy}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>io.rest-assured</groupId>
-      <artifactId>rest-assured</artifactId>
+      <groupId>io.thorntail</groupId>
+      <artifactId>arquillian</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -41,8 +47,8 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.wildfly.swarm</groupId>
-        <artifactId>wildfly-swarm-plugin</artifactId>
+        <groupId>io.thorntail</groupId>
+        <artifactId>thorntail-maven-plugin</artifactId>
         <configuration>
           <properties>
             <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
@@ -71,17 +77,14 @@
             <configuration>
               <generator>
                 <includes>
-                  <include>wildfly-swarm</include>
+                  <include>thorntail-v2</include>
                 </includes>
-                <excludes>
-                  <exclude>webapp</exclude>
-                </excludes>
               </generator>
               <enricher>
                 <config>
-                  <wildfly-swarm-health-check>
-                    <path>/health</path>
-                  </wildfly-swarm-health-check>
+                  <thorntail-v2-health-check>
+                    <path>/</path>
+                  </thorntail-v2-health-check>
                 </config>
               </enricher>
             </configuration>
