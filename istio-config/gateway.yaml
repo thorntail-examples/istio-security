@@ -1,0 +1,37 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: thorntail-istio-security-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: thorntail-istio-security-greeting
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - thorntail-istio-security-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /thorntail-istio-security/
+    - uri:
+        prefix: /thorntail-istio-security
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: thorntail-istio-security-greeting
+        port:
+          number: 8080
