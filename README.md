@@ -7,7 +7,7 @@ Showcase mTLS and ACL of Istio with Thorntail applications
 ## Prerequisites
 
 * Docker installed and running
-* OpenShift and Istio environment up and running with mTLS enabled (See https://github.com/openshift-istio/istio-docs/blob/master/user-journey.adoc for details)
+* OpenShift and Istio environment up and running with mTLS enabled (See https://github.com/openshift-istio/istio-docs/blob/master/content/rhoar-workflow.adoc for details)
 
 ## Launcher Flow Setup
 
