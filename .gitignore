@@ -3,3 +3,4 @@
 target
 .DS_STORE
 audit.log
+.java-version
