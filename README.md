@@ -87,10 +87,13 @@ spec:
       token: YOUR_GIT_ACCOUNT_TOKEN
 ```
 
+where the GIT token should have `public_repo`, `read:org`, and `admin:repo_hook` permissions. 
+
+
 The more complete version may look like this:
 https://github.com/Maistra/openshift-ansible/blob/maistra-0.7.0/istio/cr-full.yaml
 
-but the one above is sufficient for testing the boosters. Note, setting `istio.autnetication` to `true` enables MTLS.
+but the one above is sufficient for testing the boosters. Note, setting `istio.authentication` to `true` enables MTLS.
 
 - Verify the Istio Control Plane and Launcher deployments:
 
