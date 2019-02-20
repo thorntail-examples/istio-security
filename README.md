@@ -50,6 +50,8 @@ and only for the istio-security booster:
 
 ```
 oc adm policy add-scc-to-user anyuid system:serviceaccount:myproject:sa-greeting
+oc adm policy add-scc-to-user privileged system:serviceaccount:myproject:sa-greeting
+oc adm policy add-scc-to-user anyuid system:serviceaccount:myproject:sa-name
 oc adm policy add-scc-to-user privileged system:serviceaccount:myproject:sa-name
 ```
 
